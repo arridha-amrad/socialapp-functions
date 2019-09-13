@@ -8,38 +8,31 @@ admin.initializeApp({
   databaseURL: "https://socialapp-6d585.firebaseio.com"
 });
 
-app.get('/screams', (req, res) => {
-  admin.firestore().collection('screams').get()
+app.get('/scream', (req, res) => {
+  admin.firestore().collection('screams').orderBy('createdAt', "desc").get()
     .then(data => {
       let screams = [];
       data.forEach(doc => {
-        screams.push(doc.data());
+        screams.push({
+          screamId: doc.id,
+          userHandle: doc.data().userHandle,
+          body: doc.data().body,
+          createdAt: doc.data().createdAt,
+        });
       });
       return res.json(screams)
     })
     .catch(err => console.error(err))
 })
 
-// exports.getScreams = functions.https.onRequest((req, res) => {
-//   admin.firestore().collection('screams').get()
-//     .then(data => {
-//       let screams = [];
-//       data.forEach(doc => {
-//         screams.push(doc.data());
-//       });
-//       return res.json(screams)
-//     })
-//     .catch(err => console.error(err))
-// })
-
-exports.newScreams = functions.https.onRequest((req, res) => {
+app.post('/scream', (req, res) => {
   if (req.method !== "POST") {
     return res.status(400).json({ error: "Request method not allowed" })
   }
   const newScream = {
     body: req.body.body,
     userHandle: req.body.userHandle,
-    createdAt: admin.firestore.Timestamp.fromDate(new Date())
+    createdAt: new Date().toISOString()
   };
   admin.firestore().collection('screams').add(newScream)
     .then(doc => {
@@ -51,4 +44,4 @@ exports.newScreams = functions.https.onRequest((req, res) => {
     })
 })
 
-exports.api = functions.https.onRequest(app);
+exports.api = functions.region('asia-northeast1').https.onRequest(app);
