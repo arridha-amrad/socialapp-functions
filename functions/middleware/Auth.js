@@ -1,6 +1,6 @@
 const {admin, db} = require('../utils/Admin');
 
-module.exports = (req, res, next) => {
+const Auth = (req, res, next) => {
   let idToken ;
   if(req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
     idToken = req.headers.authorization.split('Bearer ')[1];
@@ -26,3 +26,4 @@ module.exports = (req, res, next) => {
     return res.status(500).json(err)
   })
 }
+module.exports = Auth;
