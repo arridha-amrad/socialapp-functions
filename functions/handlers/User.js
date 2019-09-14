@@ -18,6 +18,7 @@ exports.Signup = (req, res) => {
 
   const noImg = 'no-img.png'
 
+  
   // TODO: VALIDATE DATA
   let token, userId;
   db.doc(`/users/${newUser.handle}`).get()
