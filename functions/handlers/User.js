@@ -1,5 +1,5 @@
 const {db, firebase, admin, firebaseConfig} = require('../utils/Admin')
-const {signupValidator, signinValidator} = require('../utils/Validators');
+const {signupValidator, signinValidator, reduceUserDetails} = require('../utils/Validators');
 const Busboy = require('busboy');
 const path = require('path');
 const os = require('os');
@@ -18,7 +18,7 @@ exports.Signup = (req, res) => {
 
   const noImg = 'no-img.png'
 
-  
+
   // TODO: VALIDATE DATA
   let token, userId;
   db.doc(`/users/${newUser.handle}`).get()
@@ -122,4 +122,41 @@ exports.uploadImage = (req, res) => {
     });
   });
   busboy.end(req.rawBody);
+};
+
+exports.addUserDetails = (req, res) => {
+  let userDetails = reduceUserDetails(req.body)
+  db.doc(`/users/${req.user.handle}`).update(userDetails)
+    .then(() => {
+      return res.json({ message: 'Details added successfully'})
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({error: err.code});
+    })
+}
+
+exports.getAuthenticatedUser = (req, res) => {
+  let userData = {};
+  db.doc(`/users/${req.user.handle}`).get()
+    .then(doc => {
+      if(doc.exists) {
+        userData.credentials = doc.data();
+        return db
+          .collection('likes')
+          .where('userHandle', '==', req.user.handle)
+          .get()
+      }
+    })
+    .then(data => {
+      userData.likes = [];
+      data.forEach(doc => {
+        userData.likes.push(doc.data());
+      });
+      return res.json(userData);
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({error: err.code})
+    });
 };
